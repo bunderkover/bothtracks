@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Bothtracks interviews both sides of a hire, the people hiring and the people looking, and matches them on evidence.">
+<meta property="og:title" content="Bothtracks">
+<meta property="og:description" content="Getting you to your end goal, with sharper intelligence on both sides of the hire.">
+<meta property="og:url" content="https://bothtracks.com/">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 22'%3E%3Ccircle cx='11' cy='11' r='9' fill='none' stroke='%232C49C9' stroke-width='3'/%3E%3Ccircle cx='23' cy='11' r='9' fill='none' stroke='%23E3A01A' stroke-width='3'/%3E%3C/svg%3E">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Bothtracks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Schibsted+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" defer></script>
+<style>
+/* Layout: a hiring dossier. Two sides, two colours (role = cobalt, candidate = saffron); the match is where they overlap (green). */
+:root{
+  --bg:#EDEFF2; --surface:#FFFFFF; --surface2:#E2E5EA; --ink:#12151C; --muted:#586070; --line:#D2D6DD;
+  --role:#2C49C9; --role-soft:#DCE2FA; --cand:#E3A01A; --cand-ink:#86570A; --cand-soft:#FAEAC5;
+  --match:#2D8452; --match-soft:#D4EDDD; --warn:#B4541E; --warn-soft:#F7E1D3;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1217; --surface:#171B22; --surface2:#20252E; --ink:#E9EBEF; --muted:#9AA2B1; --line:#2C323C;
+  --role:#7E97FF; --role-soft:#1E2747; --cand:#F0B53C; --cand-ink:#F3C664; --cand-soft:#372B10;
+  --match:#5FC488; --match-soft:#16301F; --warn:#F09A62; --warn-soft:#3A2214; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1217; --surface:#171B22; --surface2:#20252E; --ink:#E9EBEF; --muted:#9AA2B1; --line:#2C323C;
+  --role:#7E97FF; --role-soft:#1E2747; --cand:#F0B53C; --cand-ink:#F3C664; --cand-soft:#372B10;
+  --match:#5FC488; --match-soft:#16301F; --warn:#F09A62; --warn-soft:#3A2214; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.02em}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--role);outline-offset:2px}
+.label{font:600 11px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:16px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;font:800 20px/1 var(--f-display);letter-spacing:-.03em;text-decoration:none;color:var(--ink)}
+.brand svg{width:34px;height:22px}
+.nav{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.nav a{color:var(--muted);text-decoration:none;font-weight:500;font-size:14px;padding:6px 10px;border-radius:8px}
+.nav a:hover{color:var(--ink);background:var(--surface2)}
+.ai-status{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);padding:5px 10px;border:1px solid var(--line);border-radius:99px}
+.ai-status i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.ai-status.ready i{background:var(--match)} .ai-status.off i{background:var(--warn)}
+
+/* hero */
+.hero .wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center;padding-block:64px 40px}
+.hero h1{font-size:clamp(40px,5.6vw,72px);line-height:.98;font-weight:800}
+.hero h1 .r{color:var(--role)} .hero h1 .c{color:var(--cand-ink)} .hero h1 .m{color:var(--match)}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;padding:18px;border:1.5px solid var(--line);border-radius:16px;background:var(--surface);cursor:pointer;transition:border-color .15s,transform .15s,background .15s;min-width:0}
+.choice b{font:700 19px/1.2 var(--f-display);letter-spacing:-.015em;text-wrap:balance}
+.choice .d{font-size:14px;color:var(--muted)}
+.choice .go{margin-top:auto;padding-top:6px;font-weight:600;font-size:14px}
+.choice.role .go{color:var(--role)} .choice.cand .go{color:var(--cand-ink)}
+.choice:hover{transform:translateY(-2px)}
+.choice.role:hover,.choice.role[aria-pressed="true"]{border-color:var(--role)}
+.choice.cand:hover,.choice.cand[aria-pressed="true"]{border-color:var(--cand)}
+.choice.role[aria-pressed="true"]{background:var(--role-soft)} .choice.cand[aria-pressed="true"]{background:var(--cand-soft)}
+@media (max-width:520px){.choices{grid-template-columns:1fr}}
+.match-role{padding:18px;border-bottom:1px solid var(--line);display:grid;gap:14px}
+.match-role:last-child{border-bottom:0}
+.match-top{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.match-top .t{flex:1;min-width:0}
+.match-top .t b{display:block;font:700 20px/1.2 var(--f-display)}
+.match-top .t span{font-size:13.5px;color:var(--muted)}
+.hero p.lede{font-size:clamp(17px,1.6vw,20px);color:var(--muted);max-width:34em;margin:22px 0 28px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);padding:10px 16px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;text-decoration:none;color:var(--ink);transition:transform .12s,background .12s}
+.btn:hover{background:var(--surface2)} .btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.primary:hover{opacity:.9;background:var(--ink)}
+.btn.small{padding:7px 12px;font-size:13px;border-radius:8px}
+.btn.ghost{background:transparent}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.hero{position:relative;overflow:hidden}
+#heroWash{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.hero .wrap{position:relative;z-index:1}
+.venn{position:relative;width:100%;max-width:500px;aspect-ratio:1/.7;justify-self:center}
+.venn canvas{position:absolute;inset:-14%;width:128%;height:128%}
+.vlabel,.vcenter{text-shadow:0 0 14px var(--bg),0 0 4px var(--bg)}
+.vlabel{position:absolute;top:50%;transform:translateY(-50%);display:grid;gap:3px;font-size:12px;color:var(--ink)}
+.vlabel b{font-weight:700;font-size:12.5px;letter-spacing:.14em;color:var(--ink)}
+.vlabel span{color:var(--ink)}
+.vlabel.l{left:5%} .vlabel.r{right:5%;text-align:right}
+.vcenter{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;display:grid;gap:4px}
+.vcenter b{font:700 clamp(34px,4.6vw,46px)/1 var(--f-mono);color:var(--ink);letter-spacing:-.04em}
+.vcenter span{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--ink);max-width:9em;text-wrap:balance}
+.choice{backdrop-filter:blur(2px)}
+
+/* trust strip */
+.strip{border-block:1px solid var(--line);background:var(--surface)}
+.strip .wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding-block:0}
+.strip div{padding:18px 20px;border-left:1px solid var(--line);font-size:14px;color:var(--muted)}
+.strip div:first-child{border-left:0;padding-left:0}
+.strip b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
+
+/* pilot */
+section.pilot{padding-block:56px 24px;scroll-margin-top:24px}
+#top,#fair{scroll-margin-top:60px}
+.pilot-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.pilot-head h2{font-size:clamp(28px,3.4vw,40px);font-weight:700}
+.pilot-head p{margin:6px 0 0;color:var(--muted);max-width:40em}
+.pilot-head .right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.example-flag{font-size:12px;font-weight:600;color:var(--cand-ink);background:var(--cand-soft);padding:4px 9px;border-radius:6px}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.step{display:flex;gap:12px;align-items:center;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;min-width:0}
+.step .n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 13px var(--f-mono);border:1.5px solid currentColor}
+.step .t{min-width:0} .step .t b{display:block;font-weight:600} .step .t span{font-size:13px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step[data-side="role"] .n{color:var(--role)} .step[data-side="cand"] .n{color:var(--cand-ink)} .step[data-side="match"] .n{color:var(--match)}
+.step[aria-selected="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.step .n.done{background:currentColor} .step .n.done::after{content:"✓";color:var(--surface)} .step .n.done span{display:none}
+
+.panel{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-width:0}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.card-h h3{font-size:17px;font-weight:700}
+.card-h .right{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.side-tag{font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;border-radius:5px}
+.side-tag.role{background:var(--role-soft);color:var(--role)} .side-tag.cand{background:var(--cand-soft);color:var(--cand-ink)} .side-tag.match{background:var(--match-soft);color:var(--match)}
+
+/* chat */
+.chat{display:flex;flex-direction:column;height:min(620px,72vh);min-height:420px}
+.disclose{font-size:12.5px;color:var(--muted);padding:9px 18px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:84%;padding:11px 14px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;font-size:15px}
+.msg.ai{align-self:flex-start;background:var(--surface2);border-top-left-radius:4px}
+.msg.me{align-self:flex-end;border-top-right-radius:4px}
+.chat.role .msg.me{background:var(--role-soft)} .chat.cand .msg.me{background:var(--cand-soft)}
+.msg .who{display:block;font:600 10.5px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.msg.pending .body:empty::after{content:"Thinking";animation:dots 1.4s steps(4,end) infinite;color:var(--muted)}
+@keyframes dots{0%{content:"Thinking"}25%{content:"Thinking."}50%{content:"Thinking.."}75%{content:"Thinking..."}}
+.composer{border-top:1px solid var(--line);padding:12px;display:flex;gap:8px;align-items:flex-end}
+.composer textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;min-height:44px;max-height:160px;font-size:15px}
+.ended{padding:14px 18px;border-top:1px solid var(--line);font-size:14px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.notice{margin:12px 18px 0;padding:10px 12px;border-radius:10px;font-size:13.5px;background:var(--warn-soft);color:var(--warn)}
+
+/* dossier */
+.dossier{padding:16px 18px;display:flex;flex-direction:column;gap:16px}
+.dossier h4{margin:0 0 6px;font:600 11px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.dossier ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px;font-size:14.5px}
+.dossier .big{font:700 22px/1.15 var(--f-display);letter-spacing:-.02em}
+.dossier .sub{color:var(--muted);font-size:14px;margin-top:4px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+.weights{display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px}
+.weights span{display:block;height:100%}
+.wlegend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted);margin-top:8px}
+.wlegend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.empty{padding:28px 18px;color:var(--muted);font-size:14.5px;text-align:left}
+.empty b{color:var(--ink)}
+
+/* candidates */
+.clist{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px 7px 8px;border:1px solid var(--line);border-radius:99px;background:var(--surface);cursor:pointer;font-weight:500;font-size:14px}
+.chip .av{width:24px;height:24px;border-radius:50%;background:var(--cand-soft);color:var(--cand-ink);display:grid;place-items:center;font:700 11px var(--f-mono)}
+.chip[aria-pressed="true"]{border-color:var(--cand);box-shadow:inset 0 0 0 1px var(--cand)}
+.chip .st{font-size:11.5px;color:var(--muted)}
+.intake{padding:20px 18px;display:grid;gap:16px}
+.field{display:grid;gap:6px}
+.field label{font-weight:600;font-size:14px}
+.field .hint{font-size:12.5px;color:var(--muted)}
+.field input,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;width:100%}
+.field textarea{min-height:110px;resize:vertical}
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:22px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--cand);background:var(--cand-soft)}
+.drop b{display:block} .drop span{font-size:13px;color:var(--muted)}
+.filebadge{display:inline-flex;gap:8px;align-items:center;font-size:13.5px;background:var(--cand-soft);color:var(--cand-ink);padding:6px 10px;border-radius:8px}
+.cand-head{display:flex;gap:14px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.cand-head .av{width:44px;height:44px;border-radius:50%;background:var(--cand-soft);color:var(--cand-ink);display:grid;place-items:center;font:700 15px var(--f-mono);flex:none}
+.cand-head .meta{min-width:0;flex:1}
+.cand-head .meta b{font:700 19px/1.2 var(--f-display);display:block}
+.cand-head .meta span{font-size:13.5px;color:var(--muted)}
+.links{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:4px}
+.links a{color:var(--role)}
+.probes li{color:var(--ink)}
+
+/* shortlist */
+.wctl{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.wctl label{display:grid;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.wctl label b{color:var(--ink);font-weight:600;display:flex;justify-content:space-between}
+.wctl input[type=range]{width:100%;accent-color:var(--match)}
+.rank{list-style:none;margin:0;padding:0}
+.row{border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row-main{display:grid;grid-template-columns:36px minmax(0,1.3fr) minmax(0,2fr) 92px 24px;gap:16px;align-items:center;padding:16px 18px;cursor:pointer;width:100%;background:none;border:0;text-align:left}
+.row-main:hover{background:var(--surface2)}
+.pos{font:700 14px var(--f-mono);color:var(--muted)}
+.who b{display:block;font-weight:600;font-size:16px} .who span{font-size:13px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bars{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.bar{display:grid;gap:4px;min-width:0}
+.bar small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .track{height:6px;border-radius:3px;background:var(--surface2);overflow:hidden}
+.bar .fill{height:100%;background:var(--match);border-radius:3px}
+.bar .fill.mid{background:var(--cand)} .bar .fill.low{background:var(--warn)}
+.score{text-align:right}
+.score b{display:block;font:700 30px/1 var(--f-mono);letter-spacing:-.04em}
+.verdict{display:inline-block;margin-top:5px;font-size:11px;font-weight:600;padding:3px 7px;border-radius:5px;white-space:nowrap}
+.v-strong{background:var(--match-soft);color:var(--match)} .v-maybe{background:var(--cand-soft);color:var(--cand-ink)} .v-no{background:var(--warn-soft);color:var(--warn)}
+.chev{transition:transform .2s;color:var(--muted)} .row.open .chev{transform:rotate(90deg)}
+.row-detail{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;padding:4px 18px 22px 70px}
+.row-detail h4{margin:0 0 8px;font:600 11px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.row-detail p{margin:0 0 14px;font-size:14.5px}
+.quote{border-left:3px solid var(--cand);padding:4px 0 4px 12px;margin:0 0 10px;font-size:14px}
+.quote q{display:block;font-style:normal} .quote q::before{content:"“"} .quote q::after{content:"”"}
+.quote small{color:var(--muted);font-size:12px}
+.row-detail ul{margin:0 0 14px;padding-left:18px;font-size:14px;display:grid;gap:3px}
+
+/* fairness section */
+section.fair{padding-block:48px 64px}
+.fair-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:22px}
+.fair-grid .card{padding:20px}
+.fair-grid h3{font-size:19px;margin:10px 0 6px}
+.fair-grid p{margin:0;color:var(--muted);font-size:14.5px}
+.fair h2{font-size:clamp(26px,3vw,36px)}
+footer{border-top:1px solid var(--line);padding-block:22px;font-size:13px;color:var(--muted)}
+footer .wrap{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between}
+
+@media (max-width: 920px){
+  .hero .wrap{grid-template-columns:1fr;padding-block:36px 28px;gap:24px}
+  .venn{max-width:340px}
+  .panel{grid-template-columns:1fr}
+  .row-main{grid-template-columns:28px minmax(0,1fr) 80px 20px}
+  .row-main .bars{grid-column:2 / -1;grid-row:2}
+  .row-detail{grid-template-columns:1fr;padding-left:18px}
+  .wctl{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fair-grid{grid-template-columns:1fr}
+}
+@media (max-width: 640px){
+  .strip .wrap{grid-template-columns:1fr}
+  .strip div{border-left:0;border-top:1px solid var(--line);padding-left:0}
+  .strip div:first-child{border-top:0}
+  .steps{grid-template-columns:1fr}
+  .nav a{display:none}
+  .bars{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+  .msg{max-width:92%}
+}
+</style>
+
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Bothtracks home">
+      <svg viewBox="0 0 34 22" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="var(--role)" stroke-width="3"/><circle cx="23" cy="11" r="9" fill="none" stroke="var(--cand)" stroke-width="3"/></svg>
+      Bothtracks
+    </a>
+    <nav class="nav">
+      <a href="#top">Choose a side</a>
+      <a href="#fair">How scoring works</a>
+      <span class="ai-status" id="aiStatus"><i></i><span>Connecting AI</span></span>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <canvas id="heroWash" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div>
+      <h1>Which side are <span class="r">you</span> on?</h1>
+      <p class="lede">Getting you to your end goal, with sharper intelligence on both sides of the hire.</p>
+      <div class="choices" id="choices">
+        <button class="choice role" data-act="mode" data-id="hire">
+          <span class="side-tag role">Hiring</span>
+          <b>I'm a hiring manager or executive searcher</b>
+          <span class="d">Brief the role in a short AI interview. Candidates are interviewed against it and ranked.</span>
+          <span class="go">Start hiring →</span>
+        </button>
+        <button class="choice cand" data-act="mode" data-id="seek">
+          <span class="side-tag cand">Looking</span>
+          <b>I'm looking for my next role</b>
+          <span class="d">Upload your CV and LinkedIn, do one adaptive interview, and see the roles that fit you.</span>
+          <span class="go">Start my profile →</span>
+        </button>
+      </div>
+    </div>
+    <div class="venn" id="venn" role="img" aria-label="The role and the person overlap in a match score">
+      <canvas id="vennCanvas" aria-hidden="true"></canvas>
+      <div class="vlabel l"><b>THE ROLE</b><span>what the job needs</span></div>
+      <div class="vlabel r"><b>THE PERSON</b><span>what they bring</span></div>
+      <div class="vcenter"><b id="vennScore">89</b><span id="vennName">TOP MATCH</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="wrap">
+    <div><b>Both sides interviewed</b>The hiring brief comes from a real conversation, not a pasted job ad.</div>
+    <div><b>Adaptive, not a questionnaire</b>Each candidate gets questions built from their CV and their last answer.</div>
+    <div><b>Every score has a source</b>Open any score to see the quotes behind it. You set the weights.</div>
+  </div>
+</div>
+
+<section class="pilot" id="pilot" hidden>
+  <div class="wrap">
+    <div class="pilot-head">
+      <div>
+        <h2 id="pilotTitle">Hiring</h2>
+        <p id="pilotSub"></p>
+      </div>
+      <div class="right" id="pilotRight"></div>
+    </div>
+    <div class="steps" role="tablist" id="steps"></div>
+    <div id="view"></div>
+  </div>
+</section>
+
+<section class="fair" id="fair">
+  <div class="wrap">
+    <div class="label">How scoring works</div>
+    <h2 style="margin-top:10px">A score you can argue with</h2>
+    <div class="fair-grid">
+      <div class="card"><span class="side-tag role">Role side</span><h3>The brief sets the rubric</h3><p>Must-haves, deal-breakers and weights come from the hiring manager interview. Candidates are scored against that brief and nothing else.</p></div>
+      <div class="card"><span class="side-tag cand">Candidate side</span><h3>Disclosed and adaptive</h3><p>Candidates are told up front they are speaking with an AI. Questions follow up on vague answers and probe claims from the CV.</p></div>
+      <div class="card"><span class="side-tag match">The match</span><h3>Five scores, one weighting</h3><p>Skills, track record, motivation, ways of working and logistics are scored separately with quotes. The overall is a weighted average you control.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><span>Bothtracks pilot · October 2026</span><span>Candidates are scored only on job-relevant evidence. Names, photos and schools are not scoring inputs.</span></div></footer>
+
+<script>
+(() => {
+"use strict";
+const DIMS = [["skills","Skills"],["experience","Track record"],["motivation","Motivation"],["ways","Ways of working"],["logistics","Logistics"]];
+const DIM_COLORS = {skills:"var(--role)",experience:"var(--match)",motivation:"var(--cand)",ways:"var(--warn)",logistics:"var(--muted)"};
+const KEY = "bothtracks.pilot.v1";
+const DONE = "[[DONE]]";
+const HOSTED = !window.claude;           // true on bothtracks.com, false inside Claude
+const CONTACT = "hello@bothtracks.com";
+
+/* ---------- example data ---------- */
+function exampleState(){
+  const role = {
+    done:true,
+    msgs:[
+      {r:"ai",t:"Let's start with the role. What are you hiring for, and why now?"},
+      {r:"me",t:"Head of Customer Success. We've gone from 40 to 140 customers in a year and churn is creeping up. I've got 6 CSMs and no real leader."},
+      {r:"ai",t:"Twelve months from now, what would make you say this hire worked?"},
+      {r:"me",t:"NRR back above 110%, a team of 10 that runs itself, and a renewal forecast I can actually trust."},
+      {r:"ai",t:"Which experience is non-negotiable, and what could someone learn on the job?"},
+      {r:"me",t:"Must have led a CS team in B2B SaaS and owned NRR. Logistics knowledge is nice but learnable. French and English both, half our customers are French."},
+      {r:"ai",t:"How does the team work day to day, and what kind of person struggles there?"},
+      {r:"me",t:"Written-first, mostly async, very low ego. People who need a lot of process before they act don't last."},
+      {r:"ai",t:"Last ones: location, budget and timing?"},
+      {r:"me",t:"Paris, 3 days a week in the office. €95–110k base plus variable. Want someone in by January."},
+      {r:"ai",t:"That's everything I need. I'll build the brief now."}
+    ],
+    profile:{
+      title:"Head of Customer Success", company:"Northline · Series B logistics SaaS",
+      summary:"First CS leader for a team of 6 CSMs after customer count tripled in a year. The job is to stop rising churn, build a forecastable renewal motion and grow the team to 10.",
+      mustHaves:["Has led a Customer Success team in B2B SaaS","Owned net revenue retention as a number","Fluent French and English"],
+      niceToHaves:["Logistics or supply-chain domain","Built a team from under 6 to over 10"],
+      waysOfWorking:["Written-first, mostly async","Low ego, acts without heavy process"],
+      dealbreakers:["Fully remote only","Needs heavy process before acting"],
+      location:"Paris, 3 days in office", compensation:"€95–110k base + variable", timeline:"Start by January",
+      weights:{skills:30,experience:25,motivation:15,ways:20,logistics:10}
+    }
+  };
+  const cands = [
+    {id:"c1",name:"Amélie Roux",linkedin:"https://www.linkedin.com/in/example-amelie-roux",cvName:"amelie-roux-cv.pdf",cvText:"",example:true,
+     read:{headline:"Director of Customer Success, Fretly (freight SaaS)",summary:"Seven years in B2B SaaS CS, the last three leading a team of 9 at a freight-tech scale-up.",probes:["Size and ownership of the NRR number at Fretly","How she grew the team from 4 to 9","French/English working split"]},
+     done:true,
+     msgs:[
+      {r:"ai",t:"Hi Amélie, thanks for making time. Your CV says you took Fretly's CS team from 4 to 9 people. What made that the right moment to grow?"},
+      {r:"me",t:"Our top 30 accounts were 70% of revenue and two CSMs were carrying all of them. I made the case to the CFO with a churn-risk model and got 5 heads over 18 months."},
+      {r:"ai",t:"You mention NRR on your CV. What was it when you started, where did it end, and what moved it?"},
+      {r:"me",t:"98% when I joined, 114% last year. Mostly a proper renewal calendar 120 days out and making expansion part of every QBR instead of a sales thing."},
+      {r:"ai",t:"How do you like to work with a team day to day?"},
+      {r:"me",t:"Weekly written updates, very few meetings. I'd rather people make a call and tell me than wait for permission."},
+      {r:"ai",t:"Last question: location, notice period and salary expectations?"},
+      {r:"me",t:"I'm in Paris, 2 months notice, looking for around €105k base."},
+      {r:"ai",t:"Thank you, Amélie. That's everything I need. The hiring team will be in touch."}
+     ]},
+    {id:"c2",name:"Tom Reyes",linkedin:"https://www.linkedin.com/in/example-tom-reyes",cvName:"tom-reyes-cv.docx",cvText:"",example:true,
+     read:{headline:"Senior CSM Manager, Brightdesk (HR SaaS)",summary:"Five years in CS at HR software companies, currently managing 4 CSMs.",probes:["Has he owned NRR or only gross retention?","French level","Willingness to be in Paris 3 days"]},
+     done:true,msgs:[{r:"ai",t:"Hi Tom, thanks for making time. You manage four CSMs at Brightdesk. What part of that job do you enjoy most?"},{r:"me",t:"Coaching. Watching a junior CSM run their first renewal on their own is the best part."}]},
+    {id:"c3",name:"Priya Natarajan",linkedin:"https://www.linkedin.com/in/example-priya-natarajan",cvName:"priya-natarajan-cv.pdf",cvText:"",example:true,
+     read:{headline:"VP Customer Experience, Cartwell (e-commerce)",summary:"Twelve years in customer experience, leading support and CS orgs of 30+ in B2C e-commerce.",probes:["B2B SaaS depth","Reason for moving to a smaller team","Location"]},
+     done:true,msgs:[{r:"ai",t:"Hi Priya, thanks for making time. You lead a 30-person CX org. Why look at a team of six?"},{r:"me",t:"Honestly I'm open to it if the title and package are right. I'd want to stay mostly remote from Lyon."}]}
+  ];
+  const results = {
+    c1:{dims:{skills:90,experience:92,motivation:85,ways:88,logistics:82},verdict:"Strong match",
+      why:"Has done this exact job one stage ahead: led a B2B SaaS CS team, grew it from 4 to 9 and moved NRR from 98% to 114%. Her written, low-meeting style matches how Northline works.",
+      evidence:[{dim:"experience",quote:"98% when I joined, 114% last year.",source:"Interview"},{dim:"skills",quote:"I made the case to the CFO with a churn-risk model and got 5 heads over 18 months.",source:"Interview"},{dim:"ways",quote:"Weekly written updates, very few meetings.",source:"Interview"},{dim:"logistics",quote:"I'm in Paris, 2 months notice, looking for around €105k base.",source:"Interview"}],
+      risks:["Two-month notice puts a January start at risk","No logistics domain, though freight is adjacent"],
+      askNext:["Walk through the churn-risk model with real numbers","Could she start part-time in December?"],
+      headline:"Director of Customer Success, Fretly"},
+    c2:{dims:{skills:78,experience:70,motivation:80,ways:62,logistics:55},verdict:"Worth a conversation",
+      why:"Strong coach with real team-building instincts, but has managed four people and tracked gross retention rather than owning NRR. French is conversational, below the bar for half the customer base.",
+      evidence:[{dim:"motivation",quote:"Coaching. Watching a junior CSM run their first renewal on their own is the best part.",source:"Interview"},{dim:"experience",quote:"Currently managing 4 CSMs.",source:"CV"}],
+      risks:["Has not owned NRR","French below working level","Asked twice about process before decisions"],
+      askNext:["Give an example of an expansion he drove himself","Test French in a live customer scenario"],
+      headline:"Senior CSM Manager, Brightdesk"},
+    c3:{dims:{skills:72,experience:80,motivation:50,ways:60,logistics:40},verdict:"Not a fit",
+      why:"Deep leadership experience at scale, but in B2C support rather than B2B SaaS CS. Wants to stay mostly remote from Lyon, which conflicts with a stated deal-breaker.",
+      evidence:[{dim:"logistics",quote:"I'd want to stay mostly remote from Lyon.",source:"Interview"},{dim:"motivation",quote:"I'm open to it if the title and package are right.",source:"Interview"}],
+      risks:["Location conflicts with 3 days in Paris","Motivation tied to title and package"],
+      askNext:["Would she relocate to Paris?"],
+      headline:"VP Customer Experience, Cartwell"}
+  };
+  return {mode:null, seek:freshSeek(), example:true, tab:"match", role, cands, results, active:"c1", open:"c1"};
+}
+function freshSeek(){ return {tab:"seekcv", me:null, matches:{}}; }
+function freshState(){
+  return {mode:S.mode, seek:S.seek, example:false, tab:"role",
+    role:{done:false,profile:null,msgs:[{r:"ai",t:"Let's start with the role. What are you hiring for, and why now?"}]},
+    cands:[], results:{}, active:null, open:null};
+}
+
+/* ---------- state ---------- */
+let S;
+try{ const raw = localStorage.getItem(KEY); S = raw ? JSON.parse(raw) : exampleState(); }catch(e){ S = exampleState(); }
+if(!S || !S.role) S = exampleState();
+if(!("mode" in S)) S.mode = null;
+if(!S.seek) S.seek = freshSeek();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+let sample = null, aiReady = "checking", ctl = null, busy = false, flash = "";
+let intake = {name:"",linkedin:"",cvName:"",cvText:"",paste:"",reading:false,err:""};
+let confirmReset = false;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const initials = n => (n||"?").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("");
+const uid = () => "c" + Math.random().toString(36).slice(2,8);
+const cand = id => S.cands.find(c=>c.id===id);
+const weights = () => (S.role.profile && S.role.profile.weights) || {skills:30,experience:25,motivation:15,ways:20,logistics:10};
+function overall(r){
+  const w = weights(); let sum=0, tw=0;
+  for(const [k] of DIMS){ const v=Number(r.dims?.[k])||0, wk=Number(w[k])||0; sum+=v*wk; tw+=wk; }
+  return tw ? Math.round(sum/tw) : 0;
+}
+function errCopy(e){
+  const c = e && e.code;
+  if(c==="not_granted"||c==="sampling_disabled"||c==="not_declared"||c==="capability_disabled") return "AI is not available in this view. Allow the page to use Claude and reload.";
+  if(c==="rate_limited") return "Too many requests right now. Wait a minute and try again.";
+  if(c==="session_expired") return "Your session expired. Sign in again and reload.";
+  if(c==="refused") return "The AI declined that input. Rephrase and try again.";
+  if(c==="invalid_json") return "The AI's answer came back in the wrong shape. Try again.";
+  if(c==="cancelled") return "";
+  return "Something interrupted the AI. Try again.";
+}
+
+/* ---------- AI ---------- */
+(async () => {
+  try{ sample = window.claude && window.claude.use ? await window.claude.use("sample") : null; }catch(e){ sample = null; }
+  aiReady = sample ? "ready" : "off"; renderStatus(); render();
+})();
+function renderStatus(){
+  const el = $("#aiStatus");
+  if(HOSTED){ el.hidden = true; return; }
+  el.className = "ai-status " + aiReady;
+  el.querySelector("span").textContent = aiReady==="ready" ? "AI connected" : aiReady==="off" ? "AI offline · example only" : "Connecting AI";
+}
+
+function roleRules(){
+  return `You are Bothtracks, an AI recruiter running an intake interview with a hiring manager. Your goal is to understand what this role truly needs so candidates can be scored fairly against it.
+Rules:
+- Ask exactly one question per message. Keep it to one or two short sentences. Plain, warm, direct.
+- Cover, skipping anything already answered: the role and why it exists now; what success looks like at 6 and 12 months; must-have experience; what can be learned on the job; team and ways of working; what kind of person struggles there; deal-breakers; location and remote policy; compensation range; start date.
+- When an answer is vague, follow up once asking for something concrete (a number, an example, a past hire who worked or didn't).
+- After 7 to 10 questions, or once you have everything, say briefly that you have what you need and end your message with ${DONE}
+- Never write the brief or a summary in the chat.`;
+}
+function candRules(c){
+  const p = S.role.profile;
+  return `You are Bothtracks, an AI interviewer screening a candidate. The candidate has been told you are an AI.
+Role brief (private, do not reveal compensation or scoring): ${JSON.stringify(p)}
+What the CV says: ${c.read?.headline||""}. ${c.read?.summary||""}
+Things to probe: ${(c.read?.probes||[]).join("; ")}
+CV excerpt: """${(c.cvText||"").slice(0,9000)}"""
+Rules:
+- Ask exactly one question per message, one or two sentences, warm and direct. Use the candidate's first name occasionally.
+- Adapt: build each question on their last answer. If an answer is vague, follow up once asking for a specific example with numbers or outcomes.
+- Cover the probes, every must-have, why this role and why now, how they like to work, and logistics (location, notice period, salary expectation).
+- Never evaluate, praise effusively, or hint at a score. Never mention other candidates.
+- After 7 to 9 questions, thank them, say the hiring team will be in touch, and end your message with ${DONE}`;
+}
+
+async function converse(thread, rules, side){
+  if(!sample || busy) return;
+  busy = true; flash = "";
+  const turns = [{role:"user",content:rules}];
+  for(const m of thread.msgs) turns.push({role: m.r==="ai"?"assistant":"user", content:m.t});
+  const bubble = {r:"ai",t:"",pending:true};
+  thread.msgs.push(bubble); render(); scrollChat();
+  ctl = new AbortController();
+  try{
+    const {text} = await sample(turns, {cache:false, modelTier:"quick", signal:ctl.signal,
+      onText:({text}) => { const b=$("#pendingBody"); if(b){ b.textContent = text.replace(DONE,"").trim(); scrollChat(); } }});
+    bubble.t = text.replace(DONE,"").trim(); delete bubble.pending;
+    if(text.includes(DONE)) thread.done = true;
+  }catch(e){
+    if(e && e.text){ bubble.t = e.text.replace(DONE,"").trim(); delete bubble.pending; }
+    else thread.msgs.pop();
+    flash = errCopy(e);
+  }
+  busy = false; ctl = null; save(); render(); scrollChat();
+}
+function scrollChat(){ const m=$("#msgs"); if(m) m.scrollTop = m.scrollHeight; }
+
+function transcript(thread, meLabel){
+  return thread.msgs.filter(m=>!m.pending).map(m => (m.r==="ai"?"Interviewer":meLabel)+": "+m.t).join("\n");
+}
+
+async function buildBrief(){
+  if(!sample || busy) return;
+  busy = true; flash = ""; render();
+  try{
+    const p = await sample.json(`Turn this hiring-manager intake interview into a role brief. Use only what was said. Reply with only JSON in this shape:
+{"title":string,"company":string,"summary":string (two sentences),"mustHaves":[string],"niceToHaves":[string],"waysOfWorking":[string],"dealbreakers":[string],"location":string,"compensation":string,"timeline":string,"weights":{"skills":int,"experience":int,"motivation":int,"ways":int,"logistics":int}}
+"weights" must sum to 100 and reflect what the manager stressed most. Use "Not discussed" for anything not covered.
+Interview:
+${transcript(S.role,"Hiring manager")}`, {modelTier:"default", cache:false});
+    if(!p || typeof p!=="object" || !p.title) throw {code:"invalid_json"};
+    p.weights = normWeights(p.weights);
+    S.role.profile = p; S.role.done = true;
+  }catch(e){ flash = errCopy(e); }
+  busy = false; save(); render();
+}
+function normWeights(w){
+  const out = {}; let t = 0;
+  for(const [k] of DIMS){ out[k] = Math.max(0, Number(w?.[k])||0); t += out[k]; }
+  if(!t) return {skills:30,experience:25,motivation:15,ways:20,logistics:10};
+  return out;
+}
+
+async function startCandidate(){
+  if(!sample || busy) return;
+  const cv = (intake.cvText || intake.paste || "").trim();
+  if(cv.length < 200){ intake.err = "Add a CV file or paste at least a few lines of CV text."; render(); return; }
+  if(intake.linkedin && !/linkedin\.com\//i.test(intake.linkedin)){ intake.err = "That doesn't look like a LinkedIn profile link. It should contain linkedin.com/in/."; render(); return; }
+  busy = true; intake.err = ""; render();
+  try{
+    const r = await sample.json(`You are screening a CV for this role before an AI interview. Reply with only JSON:
+{"name":string (candidate's full name from the CV),"headline":string (current role and company, one line),"summary":string (two sentences on relevant background),"probes":[3 to 5 short strings: claims to verify, gaps against the must-haves, or things the CV leaves unclear],"firstQuestion":string (a warm opening question, one or two sentences, that greets them by first name and references something specific from their CV)}
+Role brief: ${JSON.stringify(S.role.profile)}
+CV:
+"""${cv.slice(0,14000)}"""`, {modelTier:"default", cache:false});
+    if(!r || !r.firstQuestion) throw {code:"invalid_json"};
+    const c = {id:uid(), name: intake.name.trim() || r.name || "Candidate", linkedin:intake.linkedin.trim(), cvName:intake.cvName || "Pasted CV", cvText:cv.slice(0,14000),
+      read:{headline:r.headline||"",summary:r.summary||"",probes:Array.isArray(r.probes)?r.probes:[]},
+      done:false, msgs:[{r:"ai",t:r.firstQuestion}]};
+    S.cands.push(c); S.active = c.id;
+    intake = {name:"",linkedin:"",cvName:"",cvText:"",paste:"",reading:false,err:""};
+  }catch(e){ intake.err = errCopy(e) || "Couldn't read that CV."; }
+  busy = false; save(); render();
+}
+
+async function scoreCandidate(c){
+  if(!sample || busy) return;
+  busy = true; flash = ""; render();
+  try{
+    const r = await scoreCall(c, S.role.profile);
+    S.results[c.id] = r; c.done = true; S.open = c.id; S.tab = "match";
+  }catch(e){ flash = errCopy(e); }
+  busy = false; save(); render();
+}
+async function scoreCall(c, profile){
+    const r = await sample.json(`Score this candidate against the role brief. Use only evidence from the CV and the interview. Ignore name, gender, age, nationality, photos and school prestige.
+Reply with only JSON:
+{"headline":string,"dims":{"skills":0-100,"experience":0-100,"motivation":0-100,"ways":0-100,"logistics":0-100},"verdict":"Strong match"|"Worth a conversation"|"Not a fit","why":string (two sentences, plain language),"evidence":[{"dim":one of skills|experience|motivation|ways|logistics,"quote":string (exact words from the interview or CV, under 25 words),"source":"Interview"|"CV"}] (3 to 5 items),"risks":[string],"askNext":[string] (1 to 3 questions a human should ask next)}
+Dimensions: skills = must-have skills and languages; experience = track record of doing this job; motivation = why this role, why now; ways = fit with the stated ways of working; logistics = location, notice, salary versus the brief. Any deal-breaker hit should cap the verdict at "Not a fit".
+Role brief: ${JSON.stringify(profile)}
+CV excerpt: """${(c.cvText||"").slice(0,8000)}"""
+Interview:
+${transcript(c, c.name)}`, {modelTier:"default", cache:false});
+    if(!r || !r.dims) throw {code:"invalid_json"};
+    return r;
+}
+
+/* ---------- job-seeker side ---------- */
+function seekRules(){
+  const me = S.seek.me;
+  return `You are Bothtracks, an AI career interviewer. The person is looking for their next role and has been told you are an AI. Your goal is a profile that shows employers real evidence and captures what this person actually wants next.
+What the CV says: ${me.read?.headline||""}. ${me.read?.summary||""}
+Things to probe: ${(me.read?.probes||[]).join("; ")}
+CV excerpt: """${(me.cvText||"").slice(0,9000)}"""
+Rules:
+- Ask exactly one question per message, one or two sentences, warm and direct. Use their first name occasionally.
+- Adapt: build each question on their last answer. When an achievement is vague, follow up once asking for numbers, scope or outcome.
+- Cover: their two or three proudest results with evidence; how they like to work and lead; why they're moving now; what they want next (role, level, industry, company stage); location and remote needs; pay expectations; deal-breakers.
+- Never judge or score them out loud.
+- After 7 to 9 questions, thank them, say their profile is ready to build, and end your message with ${DONE}`;
+}
+async function startSeek(){
+  if(!sample || busy) return;
+  const cv = (intake.cvText || intake.paste || "").trim();
+  if(cv.length < 200){ intake.err = "Add your CV as a file or paste at least a few lines of it."; render(); return; }
+  if(intake.linkedin && !/linkedin\.com\//i.test(intake.linkedin)){ intake.err = "That doesn't look like a LinkedIn profile link. It should contain linkedin.com/in/."; render(); return; }
+  busy = true; intake.err = ""; render();
+  try{
+    const r = await sample.json(`Read this CV before an AI career interview. Reply with only JSON:
+{"name":string (full name from the CV),"headline":string (current role and company, one line),"summary":string (two sentences on their background),"probes":[3 to 5 short strings: achievements to quantify, gaps or moves to explain, or things the CV leaves unclear],"firstQuestion":string (a warm opening question, one or two sentences, that greets them by first name and references something specific from their CV)}
+CV:
+"""${cv.slice(0,14000)}"""`, {modelTier:"default", cache:false});
+    if(!r || !r.firstQuestion) throw {code:"invalid_json"};
+    S.seek.me = {id:"me", name: intake.name.trim() || r.name || "You", linkedin:intake.linkedin.trim(), cvName:intake.cvName || "Pasted CV", cvText:cv.slice(0,14000),
+      read:{headline:r.headline||"",summary:r.summary||"",probes:Array.isArray(r.probes)?r.probes:[]}, done:false, msgs:[{r:"ai",t:r.firstQuestion}], profile:null};
+    S.seek.matches = {}; S.seek.tab = "seekint";
+    intake = {name:"",linkedin:"",cvName:"",cvText:"",paste:"",reading:false,err:""};
+  }catch(e){ intake.err = errCopy(e) || "Couldn't read that CV."; }
+  busy = false; save(); render(); setTimeout(scrollChat,0);
+}
+async function buildSeekProfile(){
+  if(!sample || busy) return;
+  const me = S.seek.me; busy = true; flash = ""; render();
+  try{
+    const p = await sample.json(`Build a candidate profile from this CV and career interview. Use only what was said or written. Reply with only JSON:
+{"headline":string,"summary":string (two sentences, third person),"strengths":[3 to 5 strings],"evidence":[{"point":string,"quote":string (exact words from the interview, under 25 words)}] (3 to 5 items),"lookingFor":{"roles":string,"level":string,"industries":string,"location":string,"pay":string},"dealbreakers":[string],"waysOfWorking":[string]}
+Use "Not discussed" for anything not covered.
+CV excerpt: """${(me.cvText||"").slice(0,8000)}"""
+Interview:
+${transcript(me, me.name)}`, {modelTier:"default", cache:false});
+    if(!p || !p.headline) throw {code:"invalid_json"};
+    me.profile = p; me.done = true;
+    for(const role of openRoles()){ S.seek.matches[role.key] = await scoreCall(me, role.profile); }
+    S.seek.tab = "seekmatch";
+  }catch(e){ flash = errCopy(e); }
+  busy = false; save(); render();
+}
+function openRoles(){ return S.role.profile ? [{key:"r1", profile:S.role.profile}] : []; }
+function overallFor(r, w){
+  let sum=0, tw=0; for(const [k] of DIMS){ sum += (Number(r.dims?.[k])||0)*(Number(w?.[k])||0); tw += Number(w?.[k])||0; }
+  return tw ? Math.round(sum/tw) : 0;
+}
+
+function intakeFields(who){
+  return `<div class="field"><label for="cvFile">${who==="me"?"Your CV":"CV"}</label>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload CV">
+        ${intake.reading ? `<b>Reading ${esc(intake.cvName)}…</b>` : intake.cvName ? `<span class="filebadge">✓ ${esc(intake.cvName)} · ${intake.cvText.length.toLocaleString()} characters read</span><span style="display:block;margin-top:8px">Click to replace</span>` : `<b>Drop a CV here or click to upload</b><span>PDF, Word (.docx) or text</span>`}
+      </div>
+      <input type="file" id="cvFile" accept=".pdf,.docx,.txt,.md" hidden>
+    </div>
+    <div class="field"><label for="paste">Or paste the CV text</label><textarea id="paste" placeholder="Paste the CV here if you don't have a file">${esc(intake.paste)}</textarea></div>
+    <div class="field"><label for="li">${who==="me"?"Your LinkedIn profile":"LinkedIn profile"}</label><input id="li" type="url" inputmode="url" placeholder="https://www.linkedin.com/in/…" value="${esc(intake.linkedin)}"><span class="hint">Saved with the profile${who==="me"?" so employers can see it":" for the hiring team"}. The pilot reads the CV only.</span></div>
+    <div class="field"><label for="nm">Name <span class="hint">(optional, read from the CV)</span></label><input id="nm" type="text" value="${esc(intake.name)}"></div>
+    ${intake.err ? `<div class="notice" style="margin:0">${esc(intake.err)}</div>` : ""}`;
+}
+
+function viewSeekCV(){
+  const me = S.seek.me;
+  if(me){
+    return `<div class="panel"><div class="card"><div class="cand-head"><span class="av">${esc(initials(me.name))}</span><div class="meta"><b>${esc(me.name)}</b><span>${esc(me.read?.headline)}</span>
+      <div class="links">${me.linkedin?`<a href="${esc(me.linkedin)}" target="_blank" rel="noopener">LinkedIn profile ↗</a>`:""}<span style="color:var(--muted)">${esc(me.cvName)}</span></div></div></div>
+      <div class="dossier"><div><h4>What we read</h4><div style="font-size:14.5px">${esc(me.read?.summary)}</div></div>
+      <div><h4>What the interview will dig into</h4><ul>${(me.read?.probes||[]).map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>
+      <div><button class="btn primary small" data-act="tab" data-id="seekint">${me.done?"Read your interview":"Continue your interview"} →</button></div></div></div>
+      <aside class="card"><div class="card-h"><h3>New CV?</h3></div><div class="empty">Starting over clears your interview and matches. Use <b>Start over</b> above.</div></aside></div>`;
+  }
+  const ok = aiReady==="ready" && !busy && !intake.reading;
+  return `<div class="panel">
+    <div class="card"><div class="card-h"><span class="side-tag cand">Looking</span><h3>Start your profile</h3></div>
+      ${notices()}
+      <div class="intake">${intakeFields("me")}
+        <div><button class="btn primary" data-act="startSeek" ${ok?"":"disabled"}>${busy ? "Reading your CV…" : "Read my CV and start the interview"}</button></div>
+      </div></div>
+    <aside class="card"><div class="card-h"><h3>How it works</h3></div>
+      <div class="dossier">
+        <div><h4>1 · We read your CV</h4><div class="sub">The AI notes which results to dig into and what your CV leaves unsaid.</div></div>
+        <div><h4>2 · One adaptive interview</h4><div class="sub">Seven to nine questions, about 15 minutes. It asks for the numbers behind your best work and what you actually want next.</div></div>
+        <div><h4>3 · Your profile and matches</h4><div class="sub">A profile built on evidence in your own words, scored against open roles. You see why each role fits or doesn't.</div></div>
+      </div></aside>
+  </div>`;
+}
+function seekHowHTML(){
+  return `<aside class="card"><div class="card-h"><h3>How it works</h3></div>
+    <div class="dossier">
+      <div><h4>1 · We read your CV</h4><div class="sub">The AI notes which results to dig into and what your CV leaves unsaid.</div></div>
+      <div><h4>2 · One adaptive interview</h4><div class="sub">Seven to nine questions, about 15 minutes. It asks for the numbers behind your best work and what you actually want next.</div></div>
+      <div><h4>3 · Your profile and matches</h4><div class="sub">A profile built on evidence in your own words, scored against open roles. You see why each role fits or doesn't.</div></div>
+    </div></aside>`;
+}
+function viewSeekInt(){
+  const me = S.seek.me;
+  if(!me) return viewSeekCV();
+  const first = (me.name||"").split(" ")[0] || "You";
+  const end = me.profile ? `Interview complete. <button class="btn small" data-act="tab" data-id="seekmatch">See your matches →</button>` :
+    `Interview complete. <button class="btn primary small" data-act="seekProfile" ${busy||aiReady!=="ready"?"disabled":""}>${busy?"Building your profile…":"Build my profile and find matches"}</button>`;
+  const finishBtn = !me.done && me.msgs.length>4 ? `<button class="btn small" data-act="finishSeek" ${busy?"disabled":""}>Finish early</button>` : "";
+  return `<div class="panel">
+    <div class="card"><div class="card-h"><span class="side-tag cand">Looking</span><h3>Your interview</h3><div class="right">${finishBtn}</div></div>
+      ${notices()}
+      ${chatHTML(me,"cand",first,"You're speaking with Bothtracks, an AI career interviewer. Answer in your own words. Specifics help: numbers, team sizes, outcomes.",end,"Type your answer… (Enter to send)")}</div>
+    <aside class="card"><div class="card-h"><span class="side-tag cand">From your CV</span></div>
+      <div class="dossier"><div><h4>Summary</h4><div style="font-size:14.5px">${esc(me.read?.summary)}</div></div>
+      <div><h4>Digging into</h4><ul>${(me.read?.probes||[]).map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div></div></aside>
+  </div>`;
+}
+function viewSeekMatch(){
+  const me = S.seek.me;
+  if(!me || !me.profile) return `<div class="card"><div class="empty"><b>No matches yet.</b><br>Finish your interview and build your profile to see the roles that fit.<br><br><button class="btn primary small" data-act="tab" data-id="${me?"seekint":"seekcv"}">${me?"Back to your interview":"Start with your CV"}</button></div></div>`;
+  const p = me.profile, L = p.lookingFor || {};
+  const list = a => (a&&a.length)?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:`<div class="sub">Not discussed</div>`;
+  const roles = openRoles().map(({key,profile}) => {
+    const r = S.seek.matches[key]; if(!r) return "";
+    const o = overallFor(r, profile.weights);
+    const vcls = /strong/i.test(r.verdict) ? "v-strong" : /not/i.test(r.verdict) ? "v-no" : "v-maybe";
+    const bars = DIMS.map(([k,l]) => { const v = Number(r.dims[k])||0; const cls = v>=75?"":v>=55?"mid":"low";
+      return `<div class="bar"><small>${l} <span class="mono">${v}</span></small><div class="track"><div class="fill ${cls}" style="width:${v}%"></div></div></div>`; }).join("");
+    return `<div class="match-role"><div class="match-top"><div class="t"><b>${esc(profile.title)}</b><span>${esc(profile.company)} · ${esc(profile.location)} · ${esc(profile.compensation)}</span></div>
+      <div class="score"><b>${o}</b><span class="verdict ${vcls}">${esc(r.verdict)}</span></div></div>
+      <div class="bars">${bars}</div>
+      <div style="font-size:14.5px">${esc(r.why)}</div>
+      <div class="row-detail" style="padding:0"><div><h4>Where you'd need to convince them</h4>${list(r.risks)}</div><div><h4>Be ready to answer</h4>${list(r.askNext)}</div></div>
+    </div>`;
+  }).join("");
+  return `<div class="panel">
+    <div class="card"><div class="card-h"><span class="side-tag match">Your matches</span><h3>Roles open on Bothtracks</h3></div>
+      ${notices()}
+      ${roles || `<div class="empty"><b>No open roles yet.</b><br>Your profile is saved. Matches appear as hiring teams brief new roles.</div>`}
+    </div>
+    <aside class="card"><div class="card-h"><span class="side-tag cand">Your profile</span></div>
+      <div class="dossier">
+        <div><div class="big">${esc(me.name)}</div><div class="sub">${esc(p.headline)}</div></div>
+        <p style="margin:0;font-size:14.5px">${esc(p.summary)}</p>
+        <div><h4>Strengths</h4>${list(p.strengths)}</div>
+        <div><h4>In your words</h4>${(p.evidence||[]).map(e=>`<div class="quote"><q>${esc(e.quote)}</q><small>${esc(e.point)}</small></div>`).join("")||"<div class='sub'>—</div>"}</div>
+        <dl class="kv"><dt>Looking for</dt><dd>${esc(L.roles)}</dd><dt>Level</dt><dd>${esc(L.level)}</dd><dt>Industries</dt><dd>${esc(L.industries)}</dd><dt>Location</dt><dd>${esc(L.location)}</dd><dt>Pay</dt><dd>${esc(L.pay)}</dd></dl>
+        <div><h4>Deal-breakers</h4>${list(p.dealbreakers)}</div>
+      </div></aside>
+  </div>`;
+}
+
+/* ---------- CV reading ---------- */
+async function readFile(file){
+  intake.reading = true; intake.err = ""; intake.cvName = file.name; intake.cvText = ""; render();
+  try{
+    const n = file.name.toLowerCase();
+    let text = "";
+    if(n.endsWith(".pdf")){
+      if(!window.pdfjsLib) throw new Error("PDF reader is still loading. Try again in a moment.");
+      const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+      for(let i=1;i<=Math.min(pdf.numPages,8);i++){ const pg = await pdf.getPage(i); const tc = await pg.getTextContent(); text += tc.items.map(it=>it.str).join(" ") + "\n"; }
+    } else if(n.endsWith(".docx")){
+      if(!window.mammoth) throw new Error("Word reader is still loading. Try again in a moment.");
+      text = (await mammoth.extractRawText({arrayBuffer: await file.arrayBuffer()})).value;
+    } else if(n.endsWith(".txt") || n.endsWith(".md")){
+      text = await file.text();
+    } else throw new Error("Use a PDF, Word (.docx) or text file.");
+    text = text.replace(/[ \t]+/g," ").trim();
+    if(text.length < 200) throw new Error("No readable text found. If it's a scanned PDF, paste the CV text below instead.");
+    intake.cvText = text;
+  }catch(e){ intake.err = e.message || "Couldn't read that file."; intake.cvName = ""; }
+  intake.reading = false; render();
+}
+
+/* ---------- render ---------- */
+function render(){
+  $("#pilot").hidden = !S.mode;
+  document.querySelectorAll(".choice").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id===S.mode)));
+  updateVenn();
+  if(!S.mode) return;
+  renderSteps(); renderPilotRight();
+  $("#pilotTitle").textContent = S.mode==="seek" ? "Your next role" : "Hiring";
+  $("#pilotSub").textContent = S.mode==="seek"
+    ? "Three steps. Share your CV, do one adaptive interview, see the roles that fit you."
+    : "Three steps. Brief the role, interview candidates, read the shortlist. Everything runs on AI.";
+  const v = $("#view");
+  if(HOSTED){
+    $("#steps").hidden = S.mode==="seek";
+    if(S.mode==="seek"){ $("#pilotSub").textContent = "Share your CV, do one adaptive interview, see the roles that fit you."; v.innerHTML = `<div class="panel">${accessHTML("seek")}${seekHowHTML()}</div>`; return; }
+    $("#pilotSub").textContent = "Below is a live example: a role briefed by AI, three candidates interviewed and ranked. Click any candidate to see the evidence.";
+    if(S.tab==="cands" && !S.active){ v.innerHTML = `<div class="panel">${accessHTML("hire")}<div></div></div>`; return; }
+  }
+  if(S.mode==="seek"){ v.innerHTML = S.seek.tab==="seekint" ? viewSeekInt() : S.seek.tab==="seekmatch" ? viewSeekMatch() : viewSeekCV(); return; }
+  if(S.tab==="role") v.innerHTML = viewRole();
+  else if(S.tab==="cands") v.innerHTML = viewCands();
+  else v.innerHTML = viewMatch();
+}
+function renderSteps(){
+  if(S.mode==="seek"){
+    const me = S.seek.me, nm = Object.keys(S.seek.matches).length;
+    const it = [
+      ["seekcv","cand","1","Your CV", me ? me.read?.headline || me.cvName : "Upload your CV and LinkedIn", !!me],
+      ["seekint","cand","2","Your interview", me ? (me.done ? "Complete" : `${me.msgs.filter(m=>m.r==="me").length} answers so far`) : "Adaptive, about 15 minutes", !!(me && me.done)],
+      ["seekmatch","match","3","Your matches", nm ? `${nm} role${nm>1?"s":""} scored` : "Roles that fit, and why", nm>0]
+    ];
+    $("#steps").innerHTML = it.map(([id,side,n,t,s,done]) =>
+      `<button class="step" role="tab" data-act="tab" data-id="${id}" data-side="${side}" aria-selected="${S.seek.tab===id}"><span class="n ${done?"done":""}"><span>${n}</span></span><span class="t"><b>${t}</b><span>${esc(s)}</span></span></button>`).join("");
+    return;
+  }
+  const scored = Object.keys(S.results).length;
+  const items = [
+    ["role","role","1","Brief the role", S.role.profile ? S.role.profile.title : "AI interviews the hiring manager", !!S.role.profile],
+    ["cands","cand","2","Interview candidates", S.cands.length ? `${S.cands.length} candidate${S.cands.length>1?"s":""}` : "CV and LinkedIn, then an adaptive interview", S.cands.length>0 && S.cands.every(c=>c.done)],
+    ["match","match","3","Read the shortlist", scored ? `${scored} scored and ranked` : "Ranked, with the quotes behind each score", scored>0]
+  ];
+  $("#steps").innerHTML = items.map(([id,side,n,t,s,done]) =>
+    `<button class="step" role="tab" data-act="tab" data-id="${id}" data-side="${side}" aria-selected="${S.tab===id}"><span class="n ${done?"done":""}"><span>${n}</span></span><span class="t"><b>${t}</b><span>${esc(s)}</span></span></button>`).join("");
+}
+function renderPilotRight(){
+  if(HOSTED){
+    $("#pilotRight").innerHTML = S.mode==="seek" ? "" : `<span class="example-flag">Example</span><button class="btn small primary" data-act="tab" data-id="cands" data-access="1">Request early access</button>`;
+    return;
+  }
+  if(S.mode==="seek"){
+    $("#pilotRight").innerHTML = S.seek.me ? `<button class="btn small" data-act="reset">${confirmReset ? "Click again to clear your profile" : "Start over"}</button>` : "";
+    return;
+  }
+  $("#pilotRight").innerHTML = (S.example ? `<span class="example-flag">Example data</span>` : "") +
+    `<button class="btn small" data-act="reset">${confirmReset ? "Click again to clear everything" : (S.example ? "Start your own pilot" : "Start over")}</button>`;
+}
+function updateVenn(){
+  if(S.mode==="seek" && S.seek.me && S.seek.me.profile){
+    const best = openRoles().map(({key,profile}) => S.seek.matches[key] ? {o:overallFor(S.seek.matches[key], profile.weights), t:profile.title} : null).filter(Boolean).sort((a,b)=>b.o-a.o)[0];
+    if(best){ $("#vennScore").textContent = best.o; $("#vennName").textContent = "YOUR TOP ROLE"; return; }
+  }
+  const ranked = rankedList();
+  $("#vennScore").textContent = ranked.length ? overall(ranked[0].r) : "—";
+  $("#vennName").textContent = ranked.length ? ranked[0].c.name.toUpperCase() : "TOP MATCH";
+}
+function accessHTML(side){
+  const seek = side==="seek";
+  return `<div class="card access"><div class="card-h"><span class="side-tag ${seek?"cand":"role"}">${seek?"Looking":"Hiring"}</span><h3>${seek?"Join the waitlist":"Request early access"}</h3></div>
+    <form class="intake" id="accessForm" data-side="${side}">
+      <p style="margin:0;color:var(--muted);font-size:14.5px">${seek
+        ? "Bothtracks is in private pilot. Leave your details and you'll be among the first to build your profile and see the roles that fit."
+        : "Bothtracks is in private pilot with a small group of hiring teams and search firms. Tell us about your hiring and we'll be in touch."}</p>
+      <div class="field"><label for="ax_name">Name</label><input id="ax_name" required autocomplete="name"></div>
+      <div class="field"><label for="ax_email">Email</label><input id="ax_email" type="email" required autocomplete="email"></div>
+      <div class="field"><label for="ax_org">${seek?"Current role":"Company and role"}</label><input id="ax_org"></div>
+      <div class="field"><label for="ax_note">${seek?"What are you looking for next?":"What are you hiring for?"} <span class="hint">(optional)</span></label><textarea id="ax_note" style="min-height:80px"></textarea></div>
+      <div><button class="btn primary" type="submit">${seek?"Join the waitlist":"Request access"}</button></div>
+      <p class="hint" id="ax_done" hidden style="margin:0;font-size:13.5px;color:var(--muted)">Your email app should open with the request ready to send. If it didn't, write to <b style="user-select:all;color:var(--ink)">${CONTACT}</b>.</p>
+    </form></div>`;
+}
+function notices(){
+  let h = "";
+  if(HOSTED) return h;
+  if(aiReady==="off") h +=`<div class="notice">The AI isn't available in this view, so you can browse the example but not run interviews. Open this page in Claude to run the pilot.</div>`;
+  if(flash) h += `<div class="notice">${esc(flash)}</div>`;
+  return h;
+}
+function chatHTML(thread, side, meLabel, disclose, endHTML, placeholder){
+  const msgs = thread.msgs.map(m => {
+    const who = m.r==="ai" ? "Bothtracks AI" : meLabel;
+    return `<div class="msg ${m.r} ${m.pending?"pending":""}"><span class="who">${esc(who)}</span><span class="body"${m.pending?' id="pendingBody"':""}>${esc(m.t)}</span></div>`;
+  }).join("");
+  const canType = aiReady==="ready" && !thread.done;
+  const composer = thread.done ? `<div class="ended">${endHTML}</div>` :
+    `<div class="composer"><textarea id="reply" rows="1" placeholder="${esc(placeholder)}" ${canType?"":"disabled"}></textarea>
+     ${busy && ctl ? `<button class="btn small" data-act="stop">Stop</button>` : `<button class="btn primary small" data-act="send" data-side="${side}" ${canType?"":"disabled"}>Send</button>`}</div>`;
+  return `<div class="chat ${side}"><div class="disclose">${disclose}</div><div class="msgs" id="msgs">${msgs}</div>${composer}</div>`;
+}
+
+function viewRole(){
+  const p = S.role.profile;
+  const end = p ? `Interview complete. The brief is ready. <button class="btn small" data-act="tab" data-id="cands">Interview candidates →</button>` :
+    `Interview complete. <button class="btn primary small" data-act="brief" ${busy||aiReady!=="ready"?"disabled":""}>${busy?"Building brief…":"Build the brief"}</button>`;
+  const finishBtn = !S.role.done && S.role.msgs.length>4 ? `<button class="btn small" data-act="finishRole" ${busy?"disabled":""}>Finish early</button>` : "";
+  return `<div class="panel">
+    <div class="card"><div class="card-h"><span class="side-tag role">Hiring side</span><h3>Intake interview</h3><div class="right">${finishBtn}</div></div>
+      ${notices()}
+      ${chatHTML(S.role,"role","Hiring manager","You're speaking with Bothtracks, an AI recruiter. Answer as the hiring manager. It asks one question at a time and follows up when something's vague.",end,"Type your answer… (Enter to send)")}</div>
+    <aside class="card"><div class="card-h"><h3>Role brief</h3></div>${briefHTML(p)}</aside>
+  </div>`;
+}
+function briefHTML(p){
+  if(!p) return `<div class="empty"><b>The brief builds itself from the interview.</b><br>Must-haves, deal-breakers and scoring weights appear here once you finish.</div>`;
+  const list = a => (a&&a.length) ? `<ul>${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>` : `<div class="sub">Not discussed</div>`;
+  const w = weights();
+  return `<div class="dossier">
+    <div><div class="big">${esc(p.title)}</div><div class="sub">${esc(p.company)}</div></div>
+    <p style="margin:0;font-size:14.5px">${esc(p.summary)}</p>
+    <div><h4>Must-haves</h4>${list(p.mustHaves)}</div>
+    <div><h4>Nice to have</h4>${list(p.niceToHaves)}</div>
+    <div><h4>Ways of working</h4>${list(p.waysOfWorking)}</div>
+    <div><h4>Deal-breakers</h4>${list(p.dealbreakers)}</div>
+    <dl class="kv"><dt>Location</dt><dd>${esc(p.location)}</dd><dt>Pay</dt><dd>${esc(p.compensation)}</dd><dt>Start</dt><dd>${esc(p.timeline)}</dd></dl>
+    <div><h4>Scoring weights</h4>${weightBar(w)}</div>
+  </div>`;
+}
+function weightBar(w){
+  const t = DIMS.reduce((s,[k])=>s+(Number(w[k])||0),0) || 1;
+  return `<div class="weights">${DIMS.map(([k])=>`<span style="width:${(w[k]/t*100).toFixed(1)}%;background:${DIM_COLORS[k]}"></span>`).join("")}</div>
+  <div class="wlegend">${DIMS.map(([k,l])=>`<span><i style="background:${DIM_COLORS[k]}"></i>${l} <span class="mono">${Math.round(w[k]/t*100)}%</span></span>`).join("")}</div>`;
+}
+
+function viewCands(){
+  if(!S.role.profile) return `<div class="card"><div class="empty"><b>Brief the role first.</b><br>Candidates are interviewed against the brief, so the AI needs it before it can tailor questions. <br><br><button class="btn primary small" data-act="tab" data-id="role">Go to step 1</button></div></div>`;
+  const chips = S.cands.map(c => {
+    const st = S.results[c.id] ? `${overall(S.results[c.id])}` : c.done ? "done" : "interviewing";
+    return `<button class="chip" data-act="pick" data-id="${c.id}" aria-pressed="${S.active===c.id}"><span class="av">${esc(initials(c.name))}</span>${esc(c.name)} <span class="st mono">${esc(st)}</span></button>`;
+  }).join("");
+  const addChip = `<button class="chip" data-act="pick" data-id="" aria-pressed="${!S.active}"><span class="av">+</span>Add candidate</button>`;
+  const c = S.active && cand(S.active);
+  return `<div class="clist">${chips}${addChip}</div>${c ? candView(c) : intakeView()}`;
+}
+function intakeView(){
+  const ok = aiReady==="ready" && !busy && !intake.reading;
+  return `<div class="panel">
+    <div class="card"><div class="card-h"><span class="side-tag cand">Candidate side</span><h3>New candidate</h3></div>
+      ${notices()}
+      <div class="intake">
+        <div class="field"><label for="cvFile">CV</label>
+          <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload CV">
+            ${intake.reading ? `<b>Reading ${esc(intake.cvName)}…</b>` : intake.cvName ? `<span class="filebadge">✓ ${esc(intake.cvName)} · ${intake.cvText.length.toLocaleString()} characters read</span><span style="display:block;margin-top:8px">Click to replace</span>` : `<b>Drop a CV here or click to upload</b><span>PDF, Word (.docx) or text</span>`}
+          </div>
+          <input type="file" id="cvFile" accept=".pdf,.docx,.txt,.md" hidden>
+        </div>
+        <div class="field"><label for="paste">Or paste the CV text</label><textarea id="paste" placeholder="Paste the CV here if you don't have a file">${esc(intake.paste)}</textarea></div>
+        <div class="field"><label for="li">LinkedIn profile</label><input id="li" type="url" inputmode="url" placeholder="https://www.linkedin.com/in/…" value="${esc(intake.linkedin)}"><span class="hint">Saved with the profile for the hiring team. The pilot reads the CV only.</span></div>
+        <div class="field"><label for="nm">Name <span class="hint">(optional, read from the CV)</span></label><input id="nm" type="text" value="${esc(intake.name)}"></div>
+        ${intake.err ? `<div class="notice" style="margin:0">${esc(intake.err)}</div>` : ""}
+        <div><button class="btn primary" data-act="startCand" ${ok?"":"disabled"}>${busy ? "Reading the CV…" : "Read CV and start interview"}</button></div>
+      </div>
+    </div>
+    <aside class="card"><div class="card-h"><h3>What happens next</h3></div>
+      <div class="dossier">
+        <div><h4>1 · CV read against the brief</h4><div class="sub">The AI notes claims to check and gaps against the must-haves for <b>${esc(S.role.profile.title)}</b>.</div></div>
+        <div><h4>2 · Adaptive interview</h4><div class="sub">Seven to nine questions. Each one builds on the last answer and the CV. Vague answers get one follow-up asking for a real example.</div></div>
+        <div><h4>3 · Scored with evidence</h4><div class="sub">Five scores, each backed by quotes, weighted by the brief.</div></div>
+      </div></aside>
+  </div>`;
+}
+function candView(c){
+  const first = (c.name||"").split(" ")[0] || "Candidate";
+  const scored = !!S.results[c.id];
+  const end = scored ? `Interview complete and scored. <button class="btn small" data-act="tab" data-id="match">See the shortlist →</button>` :
+    `Interview complete. <button class="btn primary small" data-act="score" data-id="${c.id}" ${busy||aiReady!=="ready"?"disabled":""}>${busy?"Scoring…":"Score against the brief"}</button>`;
+  const finishBtn = !c.done && c.msgs.length>4 ? `<button class="btn small" data-act="finishCand" data-id="${c.id}" ${busy?"disabled":""}>Finish early</button>` : "";
+  const r = c.read || {};
+  return `<div class="panel">
+    <div class="card">
+      <div class="cand-head"><span class="av">${esc(initials(c.name))}</span><div class="meta"><b>${esc(c.name)}</b><span>${esc(r.headline)}</span>
+        <div class="links">${c.linkedin?`<a href="${esc(c.linkedin)}" target="_blank" rel="noopener">LinkedIn profile ↗</a>`:""}<span style="color:var(--muted)">${esc(c.cvName)}</span></div></div>${finishBtn}</div>
+      ${notices()}
+      ${chatHTML(c,"cand",first,`${esc(first)} is speaking with Bothtracks, an AI interviewer. They were told this before starting.`,end,`Answer as ${first}… (Enter to send)`)}
+    </div>
+    <aside class="card"><div class="card-h"><span class="side-tag cand">From the CV</span></div>
+      <div class="dossier">
+        <div><h4>Summary</h4><div style="font-size:14.5px">${esc(r.summary)||"—"}</div></div>
+        <div><h4>Probing in the interview</h4>${(r.probes||[]).length?`<ul class="probes">${r.probes.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>`:"<div class='sub'>—</div>"}</div>
+        <div><h4>Scored against</h4><div class="sub">${esc(S.role.profile.title)} · ${esc(S.role.profile.company)}</div></div>
+      </div></aside>
+  </div>`;
+}
+
+function rankedList(){
+  return S.cands.filter(c=>S.results[c.id]).map(c=>({c,r:S.results[c.id]})).sort((a,b)=>overall(b.r)-overall(a.r));
+}
+function viewMatch(){
+  const list = rankedList();
+  if(!S.role.profile) return `<div class="card"><div class="empty"><b>No shortlist yet.</b><br>Brief the role, then interview a few candidates.<br><br><button class="btn primary small" data-act="tab" data-id="role">Go to step 1</button></div></div>`;
+  const w = weights();
+  const sliders = DIMS.map(([k,l]) => `<label for="w_${k}"><b><span>${l}</span><span class="mono" id="wv_${k}">${w[k]}</span></b><input id="w_${k}" type="range" min="0" max="50" step="5" value="${w[k]}" data-act="weight" data-k="${k}"></label>`).join("");
+  const rows = list.map(({c,r},i) => {
+    const o = overall(r); const open = S.open===c.id;
+    const vcls = /strong/i.test(r.verdict) ? "v-strong" : /not/i.test(r.verdict) ? "v-no" : "v-maybe";
+    const bars = DIMS.map(([k,l]) => { const v = Number(r.dims[k])||0; const cls = v>=75?"":v>=55?"mid":"low";
+      return `<div class="bar" title="${l}: ${v}"><small>${l} <span class="mono">${v}</span></small><div class="track"><div class="fill ${cls}" style="width:${v}%"></div></div></div>`; }).join("");
+    const ev = (r.evidence||[]).map(e => `<div class="quote"><q>${esc(e.quote)}</q><small>${esc((DIMS.find(d=>d[0]===e.dim)||[,e.dim])[1])} · ${esc(e.source||"Interview")}</small></div>`).join("");
+    const lst = a => (a&&a.length)?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"<p>—</p>";
+    return `<li class="row ${open?"open":""}">
+      <button class="row-main" data-act="toggle" data-id="${c.id}" aria-expanded="${open}">
+        <span class="pos">${String(i+1).padStart(2,"0")}</span>
+        <span class="who"><b>${esc(c.name)}</b><span>${esc(r.headline || c.read?.headline || "")}</span></span>
+        <span class="bars">${bars}</span>
+        <span class="score"><b>${o}</b><span class="verdict ${vcls}">${esc(r.verdict)}</span></span>
+        <span class="chev">›</span>
+      </button>
+      ${open ? `<div class="row-detail"><div><h4>Why this score</h4><p>${esc(r.why)}</p><h4>Evidence</h4>${ev||"<p>—</p>"}</div>
+        <div><h4>Risks</h4>${lst(r.risks)}<h4>Ask next</h4>${lst(r.askNext)}
+        <button class="btn small" data-act="openCand" data-id="${c.id}">Read the interview</button></div></div>` : ""}
+    </li>`;
+  }).join("");
+  return `<div class="card">
+    <div class="card-h"><span class="side-tag match">Shortlist</span><h3>${esc(S.role.profile.title)}</h3><div class="right"><span class="label" style="align-self:center">Drag the weights to re-rank</span></div></div>
+    ${notices()}
+    <div class="wctl">${sliders}</div>
+    ${list.length ? `<ol class="rank">${rows}</ol>` : `<div class="empty"><b>No one scored yet.</b><br>Finish a candidate interview and score it to see them here.<br><br><button class="btn primary small" data-act="tab" data-id="cands">Interview a candidate</button></div>`}
+  </div>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-act]"); if(!t) return;
+  const a = t.dataset.act, id = t.dataset.id;
+  if(a!=="reset") confirmReset = false;
+  if(a==="mode"){ S.mode = id; flash = ""; save(); render(); setTimeout(()=>{ $("#pilot").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}); scrollChat(); },30); }
+  else if(a==="tab"){ if(t.dataset.access) S.active = null; if(id.startsWith("seek")) S.seek.tab = id; else S.tab = id; flash = ""; save(); render(); setTimeout(scrollChat,0); }
+  else if(a==="reset"){ if(!confirmReset){ confirmReset = true; renderPilotRight(); return; } confirmReset=false; if(S.mode==="seek") S.seek = freshSeek(); else S = freshState(); save(); render(); }
+  else if(a==="startSeek"){ syncIntake(); startSeek(); }
+  else if(a==="seekProfile") buildSeekProfile();
+  else if(a==="finishSeek"){ if(S.seek.me){ S.seek.me.done = true; save(); render(); } }
+  else if(a==="send") send();
+  else if(a==="stop"){ ctl && ctl.abort(); }
+  else if(a==="brief") buildBrief();
+  else if(a==="finishRole"){ S.role.done = true; save(); render(); }
+  else if(a==="finishCand"){ const c=cand(id); if(c){ c.done = true; save(); render(); } }
+  else if(a==="pick"){ S.active = id || null; flash=""; save(); render(); setTimeout(scrollChat,0); }
+  else if(a==="startCand"){ syncIntake(); startCandidate(); }
+  else if(a==="score"){ const c=cand(id); if(c) scoreCandidate(c); }
+  else if(a==="toggle"){ S.open = S.open===id ? null : id; save(); render(); }
+  else if(a==="openCand"){ S.active = id; S.tab = "cands"; save(); render(); setTimeout(scrollChat,0); }
+});
+document.addEventListener("click", e => { if(e.target.closest("#drop")) $("#cvFile").click(); });
+document.addEventListener("submit", e => {
+  if(e.target.id!=="accessForm") return;
+  e.preventDefault();
+  const seek = e.target.dataset.side==="seek";
+  const v = id => ($("#"+id)?.value || "").trim();
+  const subject = seek ? `Waitlist: ${v("ax_name")}` : `Early access: ${v("ax_name")}${v("ax_org")?" · "+v("ax_org"):""}`;
+  const body = `Name: ${v("ax_name")}\nEmail: ${v("ax_email")}\n${seek?"Current role":"Company and role"}: ${v("ax_org")}\n\n${v("ax_note")}`;
+  location.href = `mailto:${CONTACT}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const d = $("#ax_done"); if(d) d.hidden = false;
+});
+document.addEventListener("keydown", e => {
+  if(e.target.id==="reply" && e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+  if(e.target.id==="drop" && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); $("#cvFile").click(); }
+});
+document.addEventListener("input", e => {
+  if(e.target.id==="reply"){ e.target.style.height="auto"; e.target.style.height=Math.min(e.target.scrollHeight,160)+"px"; }
+  if(["paste","li","nm"].includes(e.target.id)) syncIntake();
+  if(e.target.dataset.act==="weight"){
+    const k = e.target.dataset.k; S.role.profile.weights[k] = Number(e.target.value);
+    save(); const wv = $("#wv_"+k); if(wv) wv.textContent = e.target.value;
+  }
+});
+document.addEventListener("change", e => {
+  if(e.target.id==="cvFile" && e.target.files[0]){ syncIntake(); readFile(e.target.files[0]); }
+  if(e.target.dataset.act==="weight"){ render(); }
+});
+document.addEventListener("dragover", e => { const d=e.target.closest("#drop"); if(d){ e.preventDefault(); d.classList.add("over"); } });
+document.addEventListener("dragleave", e => { const d=e.target.closest("#drop"); if(d) d.classList.remove("over"); });
+document.addEventListener("drop", e => { const d=e.target.closest("#drop"); if(d){ e.preventDefault(); d.classList.remove("over"); const f=e.dataTransfer.files[0]; if(f){ syncIntake(); readFile(f); } } });
+
+function syncIntake(){
+  const p=$("#paste"), l=$("#li"), n=$("#nm");
+  if(p) intake.paste = p.value; if(l) intake.linkedin = l.value; if(n) intake.name = n.value;
+}
+function send(){
+  const box = $("#reply"); if(!box || busy) return;
+  const text = box.value.trim(); if(!text) return;
+  if(S.mode==="seek"){ const me = S.seek.me; if(!me) return; me.msgs.push({r:"me",t:text}); converse(me, seekRules(), "cand"); }
+  else if(S.tab==="role"){ S.role.msgs.push({r:"me",t:text}); converse(S.role, roleRules(), "role"); }
+  else { const c = cand(S.active); if(!c) return; c.msgs.push({r:"me",t:text}); converse(c, candRules(c), "cand"); }
+}
+
+render();
+})();
+
+/* ---------- watercolor ---------- */
+(() => {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function rng(seed){ let s = seed>>>0; return () => { s = (s + 0x6D2B79F5)>>>0; let t = s; t = Math.imul(t ^ t>>>15, t|1); t ^= t + Math.imul(t ^ t>>>7, t|61); return ((t ^ t>>>14)>>>0)/4294967296; }; }
+  function gauss(R){ let u=0,v=0; while(!u)u=R(); while(!v)v=R(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+  function deform(pts, depth, varr, R){
+    let p = pts;
+    for(let d=0; d<depth; d++){
+      const out = [];
+      for(let i=0;i<p.length;i++){
+        const a = p[i], b = p[(i+1)%p.length];
+        out.push(a);
+        const v = varr * Math.pow(0.62, d) * (a[2] ?? 1);
+        out.push([(a[0]+b[0])/2 + gauss(R)*v, (a[1]+b[1])/2 + gauss(R)*v, Math.max(.2,(a[2]??1)*(0.75+R()*0.5))]);
+      }
+      p = out;
+    }
+    return p;
+  }
+  function blob(cx, cy, r, R, n=12){
+    const pts = []; for(let i=0;i<n;i++){ const t = i/n*Math.PI*2; pts.push([cx+Math.cos(t)*r, cy+Math.sin(t)*r*(0.92+R()*0.16), 0.6+R()*0.8]); } return pts;
+  }
+  function poly(ctx, p){ ctx.beginPath(); ctx.moveTo(p[0][0],p[0][1]); for(let i=1;i<p.length;i++) ctx.lineTo(p[i][0],p[i][1]); ctx.closePath(); ctx.fill(); }
+  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function hexA(hex, a){ const h = hex.replace("#",""); const n = parseInt(h.length===3 ? h.split("").map(c=>c+c).join("") : h, 16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+  const isDark = () => getComputedStyle(document.documentElement).colorScheme.includes("dark");
+
+  // a "wash" = one deformed base shape, painted as many faint, re-deformed layers
+  function makeWash(cx, cy, r, color, alpha, layers, seed){
+    const R = rng(seed);
+    const base = deform(blob(cx,cy,r,R), 3, r*0.16, R);
+    const out = [];
+    for(let i=0;i<layers;i++){ out.push({p: deform(base, 4, r*0.09, R), c: color, a: alpha}); }
+    return out;
+  }
+  function setup(canvas){
+    const dpr = Math.min(2, devicePixelRatio || 1), w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr);
+    const ctx = canvas.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+    return {ctx, w, h};
+  }
+  function grain(ctx, w, h, seed, amt){
+    const R = rng(seed); const dark = isDark();
+    ctx.fillStyle = dark ? "rgba(255,255,255,.035)" : "rgba(20,24,35,.035)";
+    for(let i=0;i<w*h*amt;i++){ ctx.fillRect(R()*w, R()*h, 1, 1); }
+  }
+
+  let raf = 0;
+  function paint(){
+    cancelAnimationFrame(raf);
+    const dark = isDark();
+    const role = tok("--role"), cand = tok("--cand"), match = tok("--match");
+    const k = dark ? 0.75 : 1;
+
+    // hero background washes: soft, pushed to the edges so text stays clean
+    const hc = document.getElementById("heroWash");
+    const H = setup(hc);
+    const bgWashes = [
+      ...makeWash(H.w*0.04, H.h*0.08, Math.max(H.w,H.h)*0.30, role, 0.018*k, 26, 11),
+      ...makeWash(H.w*0.98, H.h*0.98, Math.max(H.w,H.h)*0.34, cand, 0.022*k, 26, 23),
+      ...makeWash(H.w*0.72, H.h*0.04, Math.max(H.w,H.h)*0.16, match, 0.016*k, 18, 37)
+    ];
+
+    // the Venn: two painted circles and the green where they meet
+    const vc = document.getElementById("vennCanvas");
+    const V = setup(vc);
+    const cw = V.w/1.28, ch = V.h/1.28, ox = cw*0.14, oy = ch*0.14;
+    const cy = oy + ch/2, r = ch*0.40, ax = ox + cw*0.34, bx = ox + cw*0.66;
+    const A = makeWash(ax, cy, r, role, 0.045*k, 34, 101);
+    const B = makeWash(bx, cy, r, cand, 0.055*k, 34, 202);
+    const M = makeWash((ax+bx)/2, cy, r*0.7, match, 0.11*k, 26, 303);
+
+    // interleave layers so the paint builds up evenly, like real glazes
+    const vennLayers = [];
+    for(let i=0;i<34;i++){ vennLayers.push(["A",A[i]],["B",B[i]]); if(M[i]) vennLayers.push(["M",M[i]]); }
+
+    function clipLens(ctx){ ctx.beginPath(); ctx.arc(ax,cy,r*1.02,0,Math.PI*2); ctx.clip(); ctx.beginPath(); ctx.arc(bx,cy,r*1.02,0,Math.PI*2); ctx.clip(); }
+    function drawVenn(n){
+      for(let i=0;i<n && i<vennLayers.length;i++){
+        const [kind, L] = vennLayers[i];
+        V.ctx.fillStyle = hexA(L.c, L.a);
+        if(kind==="M"){ V.ctx.save(); clipLens(V.ctx); poly(V.ctx, L.p); V.ctx.restore(); }
+        else poly(V.ctx, L.p);
+      }
+    }
+    function drawBg(n){ for(let i=0;i<n && i<bgWashes.length;i++){ H.ctx.fillStyle = hexA(bgWashes[i].c, bgWashes[i].a); poly(H.ctx, bgWashes[i].p); } }
+
+    if(reduce){ drawBg(bgWashes.length); drawVenn(vennLayers.length); grain(H.ctx,H.w,H.h,7,.05); return; }
+    let iv = 0, ib = 0;
+    const step = () => {
+      const nv = Math.min(vennLayers.length, iv+3), nb = Math.min(bgWashes.length, ib+3);
+      for(let i=iv;i<nv;i++){ const [kind,L]=vennLayers[i]; V.ctx.fillStyle = hexA(L.c,L.a); if(kind==="M"){ V.ctx.save(); clipLens(V.ctx); poly(V.ctx,L.p); V.ctx.restore(); } else poly(V.ctx,L.p); }
+      for(let i=ib;i<nb;i++){ H.ctx.fillStyle = hexA(bgWashes[i].c,bgWashes[i].a); poly(H.ctx,bgWashes[i].p); }
+      iv = nv; ib = nb;
+      if(iv < vennLayers.length || ib < bgWashes.length) raf = requestAnimationFrame(step);
+      else grain(H.ctx,H.w,H.h,7,.05);
+    };
+    raf = requestAnimationFrame(step);
+  }
+
+  let t = 0; const later = () => { clearTimeout(t); t = setTimeout(paint, 180); };
+  const start = () => { if(document.fonts && document.fonts.ready) document.fonts.ready.then(paint); else paint(); };
+  start();
+  addEventListener("resize", later);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", later);
+  new MutationObserver(later).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
+})();
+</script>
+
+</body>
+</html>
